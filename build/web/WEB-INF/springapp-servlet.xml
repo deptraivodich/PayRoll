@@ -1,5 +1,4 @@
 <?xml version='1.0' encoding='UTF-8' ?>
-<!-- was: <?xml version="1.0" encoding="UTF-8"?> -->
 <beans  xmlns="http://www.springframework.org/schema/beans"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns:context="http://www.springframework.org/schema/context"
@@ -18,18 +17,21 @@
             http://www.springframework.org/schema/tx
             http://www.springframework.org/schema/tx/spring-tx-4.0.xsd">
 
-    <!-- Scans the classpath of this application for @Components to deploy as beans -->
     <context:component-scan base-package="springapp.web"></context:component-scan>
-    <!-- Configures the @Controller programming model -->
+    
     <mvc:annotation-driven ></mvc:annotation-driven>
+
+    <mvc:interceptors>
+        <mvc:interceptor>
+            <mvc:mapping path="/admin/**"/>
+            <bean class="springapp.web.interceptor.SsoInterceptor" />
+        </mvc:interceptor>
+    </mvc:interceptors>
     <bean id="viewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver">
         <property name="prefix" value="/WEB-INF/jsp/"></property>
         <property name="suffix" value=".jsp"></property>
     </bean>
     
-    <!-- Tiles configuration -->
-   
-    <!--<bean id="tilesviewResolver" class="org.springframework.web.servlet.view.tiles3.TilesViewResolver"/>-->
     <bean id="tilesConfigurer"
           class="org.springframework.web.servlet.view.tiles3.TilesConfigurer">
         <property name="definitions">
@@ -40,6 +42,3 @@
     </bean>   
     
 </beans>
-
-
-

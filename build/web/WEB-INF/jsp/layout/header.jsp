@@ -15,7 +15,24 @@
                     <i class="icon-search"></i>
                 </button>
             </form>
+            
             <ul class="nav pull-right">
+                
+                <li style="padding-top: 5px; margin-right: 15px;">
+                    <% 
+                        // Lưu ý: Tên biến Session phải khớp với tên trong Controller em đã lưu
+                        // Ở đây thầy check cả 2 trường hợp "LOGGEDIN_USER" (code cũ) hoặc "USER" (code hiện tại của em)
+                        if (request.getSession().getAttribute("LOGGEDIN_USER") != null || request.getSession().getAttribute("USER") != null) { 
+                    %>
+                        <a href="${pageContext.request.contextPath}/admin/goToHr.html" class="btn btn-success" style="color: white; border-radius: 4px;">
+                            <i class="icon-exchange"></i> Chuyển sang HR
+                        </a>
+                    <% } else { %>
+                        <button class="btn" disabled style="background-color: #555; color: #aaa; cursor: not-allowed; border-radius: 4px;">
+                            <i class="icon-lock"></i> Chuyển sang HR (Vui lòng đăng nhập)
+                        </button>
+                    <% } %>
+                </li>
                 <li><a href="#">Welcome: <%=request.getSession().getAttribute("USER")%> </a></li>
                 <li class="nav-user dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">
                         <img src="<%=request.getContextPath()%>/resources/images/user.png" class="nav-avatar" />

@@ -9,12 +9,58 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import springapp.web.dao.UserDao;
 import springapp.web.model.Users;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 @RequestMapping(value = "/admin")
 public class LoginController {
     
+    private static final String SECRET_KEY = "System_Integration_Practice_Secret_Key_2026";
+    // Chú ý: Đổi port 5000 thành port thực tế của ứng dụng C#
+    private static final String HR_SSO_URL = "http://localhost:19335/Login/Sso";
+    
+    // 1. Hàm được gọi khi bấm nút "Chuyển sang HR"
+    @RequestMapping(value = "/goToHr.html", method = RequestMethod.GET)
+    public String goToHr(HttpServletRequest request) {
+        Users user = (Users) request.getSession().getAttribute("LOGGEDIN_USER");
+        if (user == null) {
+            return "redirect:login.html"; 
+        }
 
+        // Tạo vé (Token) để mang sang C#
+        String token = Jwts.builder()
+                .claim("userName", user.getUserName())
+                .setExpiration(new java.util.Date(System.currentTimeMillis() + 300000)) // 5 phút
+                .signWith(SignatureAlgorithm.HS256, SECRET_KEY.getBytes(java.nio.charset.StandardCharsets.UTF_8))
+                .compact();
+
+        // Chuyển hướng sang C# kèm theo vé
+        return "redirect:" + HR_SSO_URL + "?token=" + token;
+    }
+
+    // 2. Hàm đón vé (Token) từ hệ thống C# gửi sang
+    @RequestMapping(value = "/sso.html", method = RequestMethod.GET)
+    public String ssoLogin(@RequestParam("token") String token, HttpServletRequest request) {
+        try {
+            io.jsonwebtoken.Claims claims = Jwts.parser()
+                    .setSigningKey(SECRET_KEY.getBytes(java.nio.charset.StandardCharsets.UTF_8))
+                    .parseClaimsJws(token)
+                    .getBody();
+
+            String userName = (String) claims.get("userName");
+
+            // Vé hợp lệ -> Tự động tạo Session đăng nhập
+            Users ssoUser = new Users();
+            ssoUser.setUserName(userName);
+            request.getSession().setAttribute("LOGGEDIN_USER", ssoUser);
+
+            return "redirect:dashboard.html"; // Trỏ về trang chủ của Spring
+        } catch (Exception e) {
+            return "redirect:login.html?error=invalid_token";
+        }
+    }
     @Autowired
     private UserDao userDao;
 
